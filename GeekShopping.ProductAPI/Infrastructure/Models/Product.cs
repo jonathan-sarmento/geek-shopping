@@ -1,6 +1,6 @@
 using GeekShopping.ProductAPI.Domain.Base;
 
-namespace GeekShopping.ProductAPI.Domain
+namespace GeekShopping.ProductAPI.Infrastructure.Models
 {
     public class Product : SimpleId<long>
     {

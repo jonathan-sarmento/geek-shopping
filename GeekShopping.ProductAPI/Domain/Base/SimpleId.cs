@@ -1,7 +1,7 @@
 namespace GeekShopping.ProductAPI.Domain.Base
 {
-    public class BaseEntity
+    public class SimpleId<TId>
     {
-        public long Id { get; set; }
+        public TId Id { get; set; }
     }
 }
