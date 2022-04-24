@@ -1,11 +1,10 @@
-using GeekShopping.ProductAPI.Domain;
 using GeekShopping.ProductAPI.Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace GeekShopping.ProductAPI.Infrastructure.Maps
+namespace GeekShopping.ProductAPI.Infrastructure.EntityTypeConfigurations
 {
-    public class ProductMap : IEntityTypeConfiguration<Product>
+    public class ProductConfiguration : IEntityTypeConfiguration<Product>
     {
         public void Configure(EntityTypeBuilder<Product> builder)
         {

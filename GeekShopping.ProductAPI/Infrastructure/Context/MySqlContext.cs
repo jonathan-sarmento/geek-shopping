@@ -16,6 +16,7 @@ namespace GeekShopping.ProductAPI.Infrastructure.Context
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Seed();
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(MySqlContext).Assembly);
             base.OnModelCreating(modelBuilder);
         }

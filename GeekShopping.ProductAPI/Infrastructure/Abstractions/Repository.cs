@@ -1,77 +1,79 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoMapper;
 using GeekShopping.ProductAPI.Domain.Base;
 using Microsoft.EntityFrameworkCore;
 
 namespace GeekShopping.ProductAPI.Infrastructure.Abstractions
 {
-    public abstract class Repository<TEntity, TId> : IRepository<TEntity, TId>
-        where TEntity : SimpleId<TId>
+    public abstract class Repository<TDomainModel, TModel, TId> : IRepository<TDomainModel, TModel, TId>
+        where TModel : SimpleId<TId>
+        where TDomainModel : SimpleId<TId>
     {
         private readonly DbContext _context;
-        private readonly DbSet<TEntity> _dbSet;
+        private readonly DbSet<TModel> _dbSet;
+        private readonly IMapper _mapper;
 
-        protected Repository(DbContext context)
+        protected Repository(DbContext context, IMapper mapper)
         {
             _context = context;
-            _dbSet = context.Set<TEntity>();
-        }
-
-        public virtual void Delete(TId id)
-        {
-            _dbSet.Remove(SelectById(id));
-            _context.SaveChanges();
+            _mapper = mapper;
+            _dbSet = context.Set<TModel>();
         }
 
         public virtual async Task DeleteAsync(TId id, CancellationToken cancellationToken)
         {
-            _dbSet.Remove(await SelectByIdAsync(id, cancellationToken).ConfigureAwait(false));
+            _dbSet.Remove(await FindByIdAsync(id, cancellationToken).ConfigureAwait(false));
             await _context.SaveChangesAsync(true, cancellationToken);
         }
-
-        public virtual bool Exists(TId id) => _dbSet.AsNoTracking().Any(x => Equals(x.Id, id));
-
+        
         public virtual async Task<bool> ExistsAsync(TId id, CancellationToken cancellationToken) =>
             await _dbSet.AsNoTracking().AnyAsync(x => Equals(x.Id, id), cancellationToken);
 
-        public virtual void Insert(TEntity entity)
+        public virtual async Task AddAsync(TDomainModel domainModel, CancellationToken cancellationToken)
         {
-            if (Exists(entity.Id)) return;
+            if (await ExistsAsync(domainModel.Id, cancellationToken).ConfigureAwait(false)) return;
 
-            _dbSet.Add(entity);
-            _context.SaveChanges();
-        }
-
-        public virtual async Task InsertAsync(TEntity entity, CancellationToken cancellationToken)
-        {
-            if (await ExistsAsync(entity.Id, cancellationToken).ConfigureAwait(false)) return;
-
-            await _dbSet.AddAsync(entity, cancellationToken);
+            var model = MapToModel(domainModel);
+            await _dbSet.AddAsync(model, cancellationToken);
             await _context.SaveChangesAsync(true, cancellationToken);
+
+            MapToDomain(model, domainModel);
+        }
+        
+        public virtual async Task<TDomainModel> SelectByIdAsync(TId id, CancellationToken cancellationToken)
+        {
+            return MapToDomain(await _dbSet.FindAsync(new object[] {id}, cancellationToken));
+        }
+        
+        private async Task<TModel> FindByIdAsync(TId id, CancellationToken cancellationToken)
+        {
+            return await _dbSet.FindAsync(new object[] {id}, cancellationToken);
         }
 
-        public virtual TEntity SelectById(TId id) => _dbSet.Find(id);
-
-        public virtual async Task<TEntity> SelectByIdAsync(TId id, CancellationToken cancellationToken) =>
-            await _dbSet.FindAsync(new object[] {id}, cancellationToken);
-
-        public IQueryable<TEntity> SelectAll() => _dbSet;
-
-        public void Update(TEntity entity)
+        public async Task<IEnumerable<TDomainModel>> GetAllAsync()
         {
-            if (Exists(entity.Id) == false) return;
-
-            _dbSet.Update(entity);
-            _context.SaveChanges();
+            return _mapper.Map<IEnumerable<TDomainModel>>(await _dbSet.ToListAsync());
         }
 
-        public async Task UpdateAsync(TEntity entity, CancellationToken cancellationToken)
+        public async Task UpdateAsync(TDomainModel domainModel, CancellationToken cancellationToken)
         {
-            if (await ExistsAsync(entity.Id, cancellationToken).ConfigureAwait(false) == false) return;
+            if (!(await ExistsAsync(domainModel.Id, cancellationToken).ConfigureAwait(false))) return;
 
-            _dbSet.Update(entity);
+            var model = MapToModel(domainModel);
+            _dbSet.Update(model);
             await _context.SaveChangesAsync(cancellationToken);
         }
+        private TDomainModel MapToDomain(TModel model, TDomainModel domain)
+            => _mapper.Map(model, domain);
+        
+        private TDomainModel MapToDomain(TModel model)
+            => _mapper.Map<TModel, TDomainModel>(model);
+        
+        private TModel MapToModel(TDomainModel domain)
+            => _mapper.Map<TDomainModel, TModel>(domain);
+    
     }
 }

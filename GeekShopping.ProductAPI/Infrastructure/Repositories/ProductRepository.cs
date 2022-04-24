@@ -1,12 +1,13 @@
+using AutoMapper;
 using GeekShopping.ProductAPI.Infrastructure.Abstractions;
+using GeekShopping.ProductAPI.Infrastructure.Context;
 using GeekShopping.ProductAPI.Infrastructure.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace GeekShopping.ProductAPI.Infrastructure.Repositories
 {
-    public class ProductRepository : Repository<Product, long>, IProductRepository
+    public class ProductRepository : Repository<Domain.ValueObjects.Product, Product, long>, IProductRepository
     {
-        public ProductRepository(DbContext context) : base(context)
+        public ProductRepository(MySqlContext context, IMapper mapper) : base(context, mapper)
         {
         }
     }
