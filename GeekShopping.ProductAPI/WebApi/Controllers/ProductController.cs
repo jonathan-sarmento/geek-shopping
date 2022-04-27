@@ -46,20 +46,20 @@ namespace GeekShopping.ProductAPI.WebApi.Controllers
         }
         
         [HttpPut]
-        public async Task<ActionResult<Product>> Update(Product product, CancellationToken cancellationToken)
+        public async Task<ActionResult<Product>> Update([FromBody] Product product, CancellationToken cancellationToken)
         {
             if (product == null) 
                 return BadRequest();
             
             await _repository.UpdateAsync(product, cancellationToken);
-            return Ok(product.Id);
+            return Ok(product);
         }
         
-        [HttpDelete("id")]
-        public async Task<ActionResult> Delete(long id, CancellationToken cancellationToken)
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<bool>> Delete(long id, CancellationToken cancellationToken)
         {
             if (id == 0) 
-                BadRequest();
+                return BadRequest();
             try
             {
                 await _repository.DeleteAsync(id, cancellationToken);
