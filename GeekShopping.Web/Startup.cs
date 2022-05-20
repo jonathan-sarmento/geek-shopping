@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using GeekShopping.Web.Services;
 using GeekShopping.Web.Services.Abstractions;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -13,6 +15,7 @@ using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Logging;
 
 namespace GeekShopping.Web
 {
@@ -42,9 +45,31 @@ namespace GeekShopping.Web
                 options.SupportedCultures = supportedCultures;
                 options.SupportedUICultures = supportedCultures;
             });
-            
+
+            services.AddAuthentication(options =>
+                {
+                    options.DefaultScheme = "Cookies";
+                    options.DefaultChallengeScheme = "oidc";
+                })
+                .AddCookie("Cookies", c => c.ExpireTimeSpan = TimeSpan.FromMinutes(10))
+                .AddOpenIdConnect("oidc", options =>
+                {
+                    options.Authority = Configuration["ServiceUrls:IdentityServer"];
+                    options.GetClaimsFromUserInfoEndpoint = true;
+                    options.ClientId = "geek_shopping";
+                    options.ClientSecret = "EuQldJcMtpOcwRsjFO2Hh2hmzqqIa6KC";
+                    options.ResponseType = "code";
+                    options.ClaimActions.MapJsonKey("role", "role", "role");
+                    options.ClaimActions.MapJsonKey("sub", "sub", "sub");
+                    options.TokenValidationParameters.NameClaimType = "name";
+                    options.TokenValidationParameters.RoleClaimType = "role";
+                    options.Scope.Add("geek_shopping");
+                    options.SaveTokens = true;
+                });
+
             services.AddHttpClient<IProductService, ProductService>(c => 
-                c.BaseAddress = new Uri(Configuration["ServiceUrls:ProductAPI"]));
+            c.BaseAddress = new Uri(Configuration["ServiceUrls:ProductAPI"]));
+            
             services.AddControllersWithViews();
         }
 
@@ -54,6 +79,7 @@ namespace GeekShopping.Web
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                IdentityModelEventSource.ShowPII = true;
             }
             else
             {
@@ -75,6 +101,7 @@ namespace GeekShopping.Web
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

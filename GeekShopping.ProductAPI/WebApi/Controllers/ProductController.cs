@@ -4,6 +4,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using GeekShopping.ProductAPI.Domain.ValueObjects;
 using GeekShopping.ProductAPI.Infrastructure.Abstractions;
+using GeekShopping.ProductAPI.Utils;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GeekShopping.ProductAPI.WebApi.Controllers
@@ -21,6 +23,7 @@ namespace GeekShopping.ProductAPI.WebApi.Controllers
         
         [HttpGet]
         [Route("{id}")]
+        [Authorize]
         public async Task<ActionResult<Product>> FindById(long id, CancellationToken cancellationToken)
         {
             var product = await _repository.SelectByIdAsync(id, cancellationToken);
@@ -29,6 +32,7 @@ namespace GeekShopping.ProductAPI.WebApi.Controllers
         }
         
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<Product>>> GetAll()
         {
             var products = await _repository.GetAllAsync();
@@ -37,6 +41,7 @@ namespace GeekShopping.ProductAPI.WebApi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<long>> Create([FromBody] Product product, CancellationToken cancellationToken)
         {
             if (product == null) return BadRequest();
@@ -46,6 +51,7 @@ namespace GeekShopping.ProductAPI.WebApi.Controllers
         }
         
         [HttpPut]
+        [Authorize]
         public async Task<ActionResult<Product>> Update([FromBody] Product product, CancellationToken cancellationToken)
         {
             if (product == null) 
@@ -56,6 +62,7 @@ namespace GeekShopping.ProductAPI.WebApi.Controllers
         }
         
         [HttpDelete("{id}")]
+        [Authorize(Roles = Role.Admin)]
         public async Task<ActionResult<bool>> Delete(long id, CancellationToken cancellationToken)
         {
             if (id == 0) 

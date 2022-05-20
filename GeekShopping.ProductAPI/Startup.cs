@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Globalization;
 using GeekShopping.ProductAPI.Infrastructure.IoC;
 using Microsoft.AspNetCore.Builder;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 namespace GeekShopping.ProductAPI
@@ -25,11 +27,58 @@ namespace GeekShopping.ProductAPI
             services.AddDbContext(options => options.ConnectionString = Configuration.GetConnectionString("MySQLConnectionString"));
             services.AddRepository();
             services.AddAutoMapper();
-                
+
+            services.AddAuthentication("Bearer")
+                .AddJwtBearer("Bearer", options =>
+                {
+                    options.Authority = "https://localhost:4435/";
+                    options.TokenValidationParameters = new TokenValidationParameters()
+                    {
+                        ValidateAudience = false
+                    };
+
+                });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("ApiScope", policy =>
+                {
+                    policy.RequireAuthenticatedUser();
+                    policy.RequireClaim("scope", "geek_shopping");
+                });
+            });
+            
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo {Title = "GeekShopping.ProductAPI", Version = "v1"});
+                c.EnableAnnotations();
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+                {
+                    Description = @"Enter 'Bearer' [space] and your token!",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer"
+                });
+                
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference()
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Scheme = "oauth2",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header
+                        },
+                        new List<string>()
+                    }
+                });
             });
         }
 
@@ -55,6 +104,7 @@ namespace GeekShopping.ProductAPI
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });

@@ -18,5 +18,8 @@ namespace GeekShopping.IdentityServer.Infrastructure.IoC
                         ServerVersion.AutoDetect(RepositoriesOptions.ConnectionString), 
                         mySqlOptions => mySqlOptions.MigrationsAssembly(typeof(MySqlContext).Assembly.GetName().Name)));
         }
+
+        public static IServiceCollection AddDbInitializer(this IServiceCollection services) 
+            => services.AddScoped<IDbInitializer, DbInitializer>();
     }
 }

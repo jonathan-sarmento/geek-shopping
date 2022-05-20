@@ -3,6 +3,7 @@ using System.Linq;
 using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
 using GeekShopping.IdentityServer.Infrastructure.Context;
+using GeekShopping.IdentityServer.Infrastructure.IoC;
 using GeekShopping.IdentityServer.Infrastructure.Model;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -37,6 +38,9 @@ namespace GeekShopping.IdentityServer.Configuration
                 .AddInMemoryApiScopes(ApiScopes)
                 .AddInMemoryClients(Clients ?? ClientsDefault)
                 .AddAspNetIdentity<ApplicationUser>();
+            
+            services.AddDbInitializer();
+
             builder.AddDeveloperSigningCredential();
 
             return services;
