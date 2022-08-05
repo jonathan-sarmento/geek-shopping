@@ -1,12 +1,10 @@
-using System.Collections.Generic;
-using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Services;
 using GeekShopping.IdentityServer.Configuration;
 using GeekShopping.IdentityServer.Infrastructure.Context;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using GeekShopping.IdentityServer.Infrastructure.IoC;
-using GeekShopping.IdentityServer.Infrastructure.Model;
-using Microsoft.AspNetCore.Identity;
+using GeekShopping.IdentityServer.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,17 +20,17 @@ namespace GeekShopping.IdentityServer
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext(options => options.ConnectionString = Configuration.GetConnectionString("MySQLConnectionString"));
-
             services.AddIdentity(Configuration);
+            
+            // Services
+            services.AddScoped<IProfileService, ProfileService>();
             
             services.AddControllersWithViews();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
             IDbInitializer initializer)
         {
@@ -43,7 +41,6 @@ namespace GeekShopping.IdentityServer
             else
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 

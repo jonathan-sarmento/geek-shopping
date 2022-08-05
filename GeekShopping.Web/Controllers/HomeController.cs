@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using GeekShopping.Web.Models;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 
 namespace GeekShopping.Web.Controllers
@@ -36,9 +34,11 @@ namespace GeekShopping.Web.Controllers
         }
         
         [Authorize]
-        public Task<IActionResult> Login()
+        public async Task<IActionResult> Login()
         {
-            return Task.FromResult<IActionResult>(RedirectToAction(nameof(Index)));
+            var accessToken = await HttpContext.GetTokenAsync("access_token");
+            System.Console.WriteLine($"Token: {accessToken}");
+            return RedirectToAction(nameof(Index));
         }
         
         public IActionResult Logout()
