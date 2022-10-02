@@ -43,4 +43,12 @@
       <_ContentIncludedByDefault Remove="Views\_ViewStart.cshtml" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="keys" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Remove="keys\is-signing-key-3FA0A415C524E00309CDDF73D378BD5C.json" />
+    </ItemGroup>
+
 </Project>
