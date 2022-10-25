@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using GeekShopping.Web.Services;
 using GeekShopping.Web.Services.Abstractions;
+using GeekShopping.Web.Utils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -70,6 +71,9 @@ namespace GeekShopping.Web
             services.AddHttpClient<IProductService, ProductService>(c => 
             c.BaseAddress = new Uri(Configuration["ServiceUrls:ProductAPI"]));
             
+            services.AddScoped<IGeekShoppingPrincipal, GeekShoppingPrincipal>();
+            services.AddScoped<IdentityMiddleware>();
+            
             services.AddControllersWithViews();
         }
 
@@ -103,6 +107,8 @@ namespace GeekShopping.Web
 
             app.UseAuthentication();
             app.UseAuthorization();
+            
+            app.UseMiddleware<IdentityMiddleware>();
 
             app.UseEndpoints(endpoints =>
             {

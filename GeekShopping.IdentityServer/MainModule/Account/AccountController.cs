@@ -338,6 +338,10 @@ namespace IdentityServerHost.Quickstart.UI
                     }
 
                 }
+                else
+                {
+                    throw new ApplicationException(result.Errors.First().Description);
+                }
             }
 
             // If we got this far, something failed, redisplay form

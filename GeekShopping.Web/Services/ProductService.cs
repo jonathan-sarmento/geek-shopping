@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using GeekShopping.Web.Models;
 using GeekShopping.Web.Services.Abstractions;
@@ -12,11 +14,12 @@ namespace GeekShopping.Web.Services
     public class ProductService : IProductService
     {
         private readonly HttpClient _client;
-        public const string BasePath = "api/v1/product";
-
-        public ProductService(HttpClient client)
+        private const string BasePath = "api/v1/product";
+        
+        public ProductService(HttpClient client, IGeekShoppingPrincipal principal)
         {
             _client = client;
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", principal.Token());
         }
         
         public async Task<IEnumerable<ProductModel>> FindAllProductsAsync()

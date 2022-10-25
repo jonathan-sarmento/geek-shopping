@@ -8,7 +8,7 @@ using GeekShopping.ProductAPI.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace GeekShopping.ProductAPI.WebApi.Controllers
+namespace GeekShopping.ProductAPI.Controllers
 {
     [Route("api/v1/[controller]")]
     [ApiController]
